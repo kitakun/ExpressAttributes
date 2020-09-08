@@ -1,6 +1,11 @@
 # ExpressAttributes
 NodeTS on decorators like .NET MVC
 
+## Available decorators
+`@Controller` mark class as Controller class
+
+`@Get` mark method as get request handler (same for `@Post @Put @Delete`)
+
 ## How to use
  * Wrap your controller with @Controller decorator
  * Wrap API handlers with @Get decorators

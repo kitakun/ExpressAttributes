@@ -4,7 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Debug NodeTS App",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
@@ -12,6 +12,24 @@
             "args": [
                 "${workspaceFolder}/src/index.ts"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "--require",
+                "ts-node/register",
+                "-u",
+                "bdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "--recursive",
+                "${workspaceFolder}/src/**/*.spec.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

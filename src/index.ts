@@ -2,7 +2,7 @@ import express from 'express';
 
 const app = express();
 
-import './controllers';
+import './controllers/registeredControllers';
 import { appRouter } from './decorators/action.decorator';
 
 app.use(appRouter);

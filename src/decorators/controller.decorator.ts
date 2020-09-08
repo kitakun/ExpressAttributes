@@ -26,7 +26,7 @@ function Controller(decoratorOptions?: IOptions): Function {
         let controllerPrefix: string;
 
         if (!decoratorOptions?.path) {
-            const controllerUrlPath = classInstance.name.endsWith(controllerPostfix)
+            const controllerUrlPath = classInstance.name.toLowerCase().endsWith(controllerPostfix)
                 ? classInstance.name.substr(0, classInstance.name.length - controllerPostfix.length)
                 : classInstance.name;
 

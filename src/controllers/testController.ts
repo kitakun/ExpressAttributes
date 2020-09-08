@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { Controller, Get } from '../decorators';
+import { Controller, Get, Post } from '../decorators';
 
 @Controller({ path: 'test' })
 export class TestController {
@@ -11,12 +11,27 @@ export class TestController {
     }
 
     @Get('users')
-    getUsers(req: Request, res: Response) {
+    public getUsers(req: Request, res: Response) {
         res.send('test -> Users');
     }
 
     @Get()
-    getHello(req: Request, res: Response) {
+    public getHello(req: Request, res: Response) {
         res.send('test -> Hello');
+    }
+
+    @Post('index')
+    public postIndex(req: Request, res: Response) {
+        res.send('test -> post Index');
+    }
+
+    @Post()
+    public postTest(req: Request, res: Response) {
+        res.send('test -> postTest');
+    }
+
+    @Post('postme')
+    public postTest2(req: Request, res: Response) {
+        res.send('test -> postme');
     }
 }

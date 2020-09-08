@@ -1,20 +1,39 @@
-import { Router } from 'express';
+import { Router, IRouterMatcher } from 'express';
 import { ControllerMetaHolder } from './meta/controller.meta';
 
 export const appRouter = Router();
 
 function Get(urlPath?: string) {
-    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) => {
-        const collectionByAction = appRouter.get;
-        const methodUrl = methodName.toLowerCase() === 'index'
-            ? '/'
-            : urlPath || methodName;
-        const apiMethod = classInstance[methodName];
-
-        ControllerMetaHolder.registerAction(classInstance, methodUrl, (url) =>
-            collectionByAction.call(appRouter, url, apiMethod)
-        );
-    };
+    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, descriptor, appRouter.get, urlPath);
 }
 
-export { Get };
+function Post(urlPath?: string) {
+    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, descriptor, appRouter.post, urlPath);
+}
+
+
+function Put(urlPath?: string) {
+    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, descriptor, appRouter.put, urlPath);
+}
+
+
+function Delete(urlPath?: string) {
+    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, descriptor, appRouter.delete, urlPath);
+}
+
+const actionCreator = function (classInstance: any, methodName: string, descriptor: PropertyDescriptor, routs: IRouterMatcher<Router>, urlPath?: string) {
+    const methodUrl = methodName.toLowerCase() === 'index'
+        ? '/'
+        : urlPath || methodName;
+    const apiMethod = classInstance[methodName];
+
+    ControllerMetaHolder.registerAction(classInstance, methodUrl, (url) =>
+        routs.call(appRouter, url, apiMethod)
+    );
+}
+
+export { Get, Post, Put, Delete };
