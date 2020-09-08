@@ -1,5 +1,5 @@
 import { ControllerMetaHolder } from './meta/controller.meta';
-import { appendControllerToUrl, stringToUrl } from '../utils';
+import { appendControllerToUrl } from '../utils';
 
 interface IOptions {
     /**

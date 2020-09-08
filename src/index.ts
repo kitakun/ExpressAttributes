@@ -1,12 +1,10 @@
-import express from 'express';
-
-const app = express();
-
+import { ExpressServer } from './decorators';
 import './controllers/registeredControllers';
-import { appRouter } from './decorators/action.decorator';
 
-app.use(appRouter);
+@ExpressServer({
+    port: 3000,
+    logRoutes: true
+})
+export class Main {
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
+}
