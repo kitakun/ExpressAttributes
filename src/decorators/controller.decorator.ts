@@ -1,5 +1,4 @@
-import { ControllerMetaHolder } from './meta/controller.meta';
-import { appendControllerToUrl } from '../utils';
+import { ControllerMeta } from './meta';
 
 interface IOptions {
     /**
@@ -14,8 +13,7 @@ export interface IControllerInstance {
      */
     name: string;
 
-    (obj: any): any;
-    new(obj: any): any;
+    new(...obj: any): any;
 }
 
 const controllerPostfix = 'controller';
@@ -35,14 +33,7 @@ function Controller(decoratorOptions?: IOptions): Function {
             controllerPrefix = decoratorOptions?.path;
         }
 
-        const allActions = ControllerMetaHolder.getActions(classInstance);
-        for (const act of allActions) {
-            if (controllerPrefix) {
-                act.action(appendControllerToUrl(controllerPrefix, act.url));
-            } else {
-                act.action(act.url);
-            }
-        }
+        ControllerMeta.injectController(classInstance, controllerPrefix);
 
         return classInstance;
     };

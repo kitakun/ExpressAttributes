@@ -1,33 +1,28 @@
-import { Router, IRouterMatcher } from 'express';
-import { ControllerMetaHolder } from './meta/controller.meta';
-
-export const appRouter = Router();
+import { ActionsMeta } from './meta';
 
 function Get(urlPath?: string) {
-    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
-        actionCreator(classInstance, methodName, descriptor, appRouter.get, 'get', urlPath);
+    return (classInstance: any, methodName: string, _: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, 'get', urlPath);
 }
 
 function Post(urlPath?: string) {
-    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
-        actionCreator(classInstance, methodName, descriptor, appRouter.post, 'post', urlPath);
+    return (classInstance: any, methodName: string, _: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, 'post', urlPath);
 }
 
 function Put(urlPath?: string) {
-    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
-        actionCreator(classInstance, methodName, descriptor, appRouter.put, 'put', urlPath);
+    return (classInstance: any, methodName: string, _: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, 'put', urlPath);
 }
 
 function Delete(urlPath?: string) {
-    return (classInstance: any, methodName: string, descriptor: PropertyDescriptor) =>
-        actionCreator(classInstance, methodName, descriptor, appRouter.delete, 'delete', urlPath);
+    return (classInstance: any, methodName: string, _: PropertyDescriptor) =>
+        actionCreator(classInstance, methodName, 'delete', urlPath);
 }
 
 const actionCreator = function (
     classInstance: any,
     methodName: string,
-    descriptor: PropertyDescriptor,
-    routs: IRouterMatcher<Router>,
     methodType: string,
     urlPath?: string) {
     const methodUrl = methodName.toLowerCase() === 'index'
@@ -35,10 +30,7 @@ const actionCreator = function (
         : urlPath || methodName;
     const apiMethod = classInstance[methodName];
 
-    ControllerMetaHolder.registerAction(classInstance, methodUrl, (url) => {
-        ControllerMetaHolder.log(classInstance.constructor.name, methodType, apiMethod.name, url);
-        routs.call(appRouter, url, apiMethod)
-    });
+    ActionsMeta.registerAction(classInstance, methodUrl, methodType, apiMethod);
 }
 
 export { Get, Post, Put, Delete };

@@ -1,8 +1,9 @@
-import express from 'express';
+import express, { Router } from 'express';
 
-import { appRouter } from './action.decorator';
-import { ControllerMetaHolder } from './meta/controller.meta';
+import { ControllerMeta } from './meta/controller.meta';
 import { Injector, IServiceContainer, IServiceProvider } from '../di';
+import { ActionsMeta } from './meta';
+import { injectControllers } from '../di/controllers.injector';
 
 interface IExpressServerOptions {
     /**
@@ -31,32 +32,15 @@ const expressDiKey = 'express';
 /** Make a Node Express Server from this class */
 function ExpressServer(decoratorOptions?: IExpressServerOptions | number): Function {
     return (classInstance: IServerWrapper) => {
-        const app = express();
-
-        // Get routes
-        app.use(appRouter);
-
         // Get server port
         let port = Number.isInteger(decoratorOptions)
             ? Number(decoratorOptions)
             : (decoratorOptions as IExpressServerOptions)?.port || 3000;
 
-        // Enable/Disable route logs
-        if ((decoratorOptions as IExpressServerOptions)?.logRoutes) {
-            ControllerMetaHolder.printLogs();
-        } else {
-            ControllerMetaHolder.clearLogs();
-        }
-
-        // Start listening
-        app.listen(port, () => {
-            console.log(`Express Server is running on port ${port}!`);
-        });
-
-        classInstance.prototype.express = app;
-
+        const app = express();
         const DI = new Injector();
 
+        // Settup DI
         DI.registerSingletone().asObject(app).byName(expressDiKey);
 
         if (classInstance.prototype.$registerServices) {
@@ -65,8 +49,26 @@ function ExpressServer(decoratorOptions?: IExpressServerOptions | number): Funct
 
         DI.build();
 
-        if (classInstance.prototype.$onReady) {
-            classInstance.prototype.$onReady(DI);
+        // Create Controllers
+        const routes = Router();
+        injectControllers(DI, ControllerMeta.getControllers(), routes);
+
+        // Set routes
+        app.use(routes);
+
+        // Start listening
+        app.listen(port, () => {
+            console.log(`Express Server is running on port ${port}!`);
+
+            // Server is Ready to go
+            if (classInstance.prototype.$onReady) {
+                classInstance.prototype.$onReady(DI);
+            }
+        });
+
+        // Print route logs
+        if ((decoratorOptions as IExpressServerOptions)?.logRoutes) {
+            ActionsMeta.printLogs();
         }
 
         return classInstance;

@@ -1,6 +1,6 @@
-import { IDirectDependency, IBuildedDependency, DependencyRegistrationType } from '../type';
+import { IDirectDependency, IBuildedDependency, DependencyRegistrationType, injectorType, DependencyType } from '../type';
 
-export function singletoneProvider(dependency: IDirectDependency): IBuildedDependency<any> {
+export function singletoneProvider(dependency: IDirectDependency, injector: injectorType): IBuildedDependency<any> {
     let singleInstance: any = null;
     // try find existing instance
     for (const meta of dependency.meta) {
@@ -11,7 +11,7 @@ export function singletoneProvider(dependency: IDirectDependency): IBuildedDepen
     // try find constructor
     for (const meta of dependency.meta) {
         if (meta.type === DependencyRegistrationType.rootType && meta.ctor) {
-            singleInstance = new meta.ctor();
+            singleInstance = injector(meta.ctor, DependencyType.singletone);
         }
     }
     // validate

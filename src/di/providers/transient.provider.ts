@@ -1,11 +1,12 @@
-import { IDirectDependency, IBuildedDependency, DependencyRegistrationType } from '../type';
+import { IDirectDependency, IBuildedDependency, DependencyRegistrationType, injectorType, DependencyType } from '../type';
 
-export function transientProvider(dependency: IDirectDependency): IBuildedDependency<any> {
-    let ctor: any = null;
+export function transientProvider(dependency: IDirectDependency, injector: injectorType): IBuildedDependency<any> {
+    let ctor: () => any = null as any;
     // try find constructor
     for (const meta of dependency.meta) {
         if (meta.type === DependencyRegistrationType.rootType && meta.ctor) {
-            ctor = new meta.ctor;
+            ctor = () => injector(meta.ctor, DependencyType.transient);
+            break;
         }
     }
     // validate
@@ -14,6 +15,6 @@ export function transientProvider(dependency: IDirectDependency): IBuildedDepend
     }
 
     return {
-        instance: () => new ctor()
+        instance: ctor
     };
 }

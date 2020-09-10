@@ -1,8 +1,7 @@
 export interface Type<T> {
     name?: string;
+
     new(...args: any): T;
-    //(...args: any): T;
-    //readonly prototype?: any;
 }
 
 export declare interface AbstractType<T> extends Function {
@@ -10,7 +9,9 @@ export declare interface AbstractType<T> extends Function {
 }
 
 export interface IServiceContainer {
+    /** Register dependency as Transient */
     registerType<T>(target: Type<any>): IRegisteredService<T>;
+    /** Register dependency as Singletone */
     registerSingletone<T>(target: Type<any>): IRegisteredService<T>;
 }
 
@@ -60,6 +61,10 @@ export enum DependencyType {
     scoped = 1,
     /** Every time new one */
     transient = 2,
+    /** Injecting @Controller */
+    controller = 3,
     /** unknown type, will be deleted after container build */
     unknown = 255
 }
+
+export declare type injectorType = (target: Type<any>, injectionScope: DependencyType) => any;

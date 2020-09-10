@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 // Locals
 import { Type, IServiceContainer, IRegisteredService, IDirectDependency, IBuildedDependency, DependencyType, DependencyRegistrationType, IDependencyMeta } from './type';
 // Providers
@@ -17,16 +16,27 @@ export class Injector implements IServiceContainer {
         return this._registration(DependencyType.singletone, target);
     }
 
+    /** Fill Container with dependencies and delete temp data */
     public build(): void {
+        // parametless injections first
+        this._directs = this._directs!.sort(f => {
+            const rootType = f.meta.find(ff => ff.type === DependencyRegistrationType.rootType && !!ff.ctor);
+            if (rootType) {
+                const tokens: any[] = Reflect.getMetadata('design:paramtypes', rootType?.ctor) || [];
+                return tokens.length;
+            }
+            return 0;
+        });
+        // create providers for injections
         for (const dep of this._directs!) {
             let dependencyProvider: IBuildedDependency<any>;
             switch (dep.type) {
                 case DependencyType.singletone:
-                    dependencyProvider = singletoneProvider(dep);
+                    dependencyProvider = singletoneProvider(dep, this.inject.bind(this));
                     break;
 
                 case DependencyType.transient:
-                    dependencyProvider = transientProvider(dep);
+                    dependencyProvider = transientProvider(dep, this.inject.bind(this));
                     break;
 
                 default:
@@ -102,8 +112,6 @@ export class Injector implements IServiceContainer {
         return wrapper;
     }
 
-    private providers: Map<any, any> = new Map();
-
     public resolve<T>(expectedType: Type<T> | string): T {
 
         if (typeof expectedType === 'string') {
@@ -114,7 +122,7 @@ export class Injector implements IServiceContainer {
             // search in values by key
             for (const mapPair of this._buildedDeps) {
                 if (mapPair[1].key === expectedType) {
-                    return mapPair[1].provider?.instance();
+                    return mapPair[1].provider?.instance() || null;
                 }
             }
 
@@ -124,7 +132,19 @@ export class Injector implements IServiceContainer {
 
             const instance = dependency?.provider?.instance();
 
-            return instance;
+            return instance || null;
         }
+    }
+
+    public inject<T>(target: Type<T>, injectionScope: DependencyType): T {
+        const tokens = Reflect.getMetadata('design:paramtypes', target) || [];
+        const injections = tokens.map((token: Type<any>) => this.resolve<any>(token)) as any[];
+        if (injections.find(f => f === null || f === undefined)) {
+            throw new Error(`${target.name} can't be injected`);
+        }
+
+        const newClassInstance = new target(...injections);
+
+        return newClassInstance;
     }
 }

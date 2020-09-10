@@ -1,13 +1,18 @@
 import { Request, Response } from 'express';
 
 import { Controller, Get, Post } from '../decorators';
+import { DataFinale } from './DataServiceFinal';
 
 @Controller({ path: 'test' })
 export class TestController {
 
+    constructor(
+        private readonly service: DataFinale) {
+    }
+
     @Get()
     public Index(req: Request, res: Response) {
-        res.send('test -> Index');
+        res.send(`test -> Index -> service=${this.service.getNumber()}`);
     }
 
     @Get('users')

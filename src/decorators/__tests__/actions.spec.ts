@@ -1,12 +1,23 @@
 import { expect } from 'chai';
 import supertest from 'supertest';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 // Locals
 import { Controller } from '../controller.decorator';
 import { Get, Post, Delete, Put } from '../action.decorator';
+import { Injector } from '../../di';
+import { injectControllers } from '../../di/controllers.injector';
+// Test Utils
+import { canBeTested } from '../../utils/__tests__/inject.server';
+
 
 @Controller({ path: 'getme' })
 class GetControllerForTests {
+
+    isIhaveIt = 5;
+    orNot: string;
+    constructor() {
+        this.orNot = 'you have';
+    }
 
     static getIndexResponse = 'getme/indexget';
     @Get()
@@ -57,7 +68,7 @@ class OtherMethodsController {
     public method1(req: Request, res: Response) {
         res.send(OtherMethodsController.postRequest1);
     }
-    
+
     static deleteRequest = 'otherMethods -> delete'
     @Delete('del')
     public method2(req: Request, res: Response) {
@@ -74,33 +85,51 @@ class OtherMethodsController {
 describe('Action Decorators Tests', () => {
 
     let expressApp: Express.Application;
+    let expressRoutes: Router;
 
-    before(async function () {
-        expressApp = await require('./inject.server').canBeTested;
+    beforeEach(async function () {
+        const [app, routes] = await canBeTested('Action Decorators Tests', [Index, OtherMethodsController, GetControllerForTests]);
+        expressApp = app;
+        expressRoutes = routes;
     });
 
     // GetControllerForTests
 
     it('Test @Get Index route binding (not root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [GetControllerForTests], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/getme');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(GetControllerForTests.getIndexResponse);
     });
 
     it('Test @Get by method name route binding (not root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [GetControllerForTests], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/getme/byMethodName');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(GetControllerForTests.byMethodNameResponse);
     });
 
     it('Test @Get by attribute parameter route binding (not root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [GetControllerForTests], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/getme/getCustomUrl');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(GetControllerForTests.byByUrlResponse);
     });
@@ -108,25 +137,40 @@ describe('Action Decorators Tests', () => {
     // Index Controller
 
     it('Test @Get Index route binding (root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [Index], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(Index.getIndexResponse);
     });
 
     it('Test @Get by method name route binding (root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [Index], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/byMethodName');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(Index.byMethodNameResponse);
     });
 
     it('Test @Get by attribute parameter route binding (root)', async () => {
+        // Assert
+        injectControllers(new Injector(), [Index], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .get('/getCustomUrl');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(Index.byByUrlResponse);
     });
@@ -134,25 +178,40 @@ describe('Action Decorators Tests', () => {
     // OtherMethods
 
     it('Test @Post by method and @Controller name route binding', async () => {
+        // Assert
+        injectControllers(new Injector(), [OtherMethodsController], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .post('/OtherMethods/postData');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(OtherMethodsController.postRequest1);
     });
-    
+
     it('Test @Put by method and @Controller name route binding', async () => {
+        // Assert
+        injectControllers(new Injector(), [OtherMethodsController], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .put('/OtherMethods/put');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(OtherMethodsController.putRequest);
     });
-    
+
     it('Test @Delete by method and @Controller name route binding', async () => {
+        // Assert
+        injectControllers(new Injector(), [OtherMethodsController], expressRoutes);
+
+        // Act
         const response = await supertest(expressApp)
             .delete('/OtherMethods/del');
 
+        // Arrange
         expect(response.status).equal(200);
         expect(response.text).eq(OtherMethodsController.deleteRequest);
     });

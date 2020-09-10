@@ -1,58 +1,38 @@
-import { IControllerInstance } from '..';
+import 'reflect-metadata';
+// Locals
+import { Type } from '../../di';
+import { IControllerInstance } from '../';
 
-declare type registerControllerByUrl = (pathUrl: string) => void;
+export class ControllerMeta {
 
-interface IControllerAction {
-    url: string;
-    action: registerControllerByUrl;
-}
+    // Controllers injection cache
+    private static _requiredInjections: Map<Type<any>, Type<any>[]> = new Map();
+    private static _controllerNames: Map<Type<any>, string> = new Map();
 
-interface IControllerMeta {
-    actions: IControllerAction[];
-}
-
-function capitalizeFirstLetter(string: string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-export class ControllerMetaHolder {
-    private static controllers: Map<IControllerInstance, IControllerMeta> = new Map();
-    private static _logs: string[] = [];
-
-    private static getOrCreateMeta(controller: IControllerInstance): IControllerMeta {
-        let meta: IControllerMeta;
-        if (!ControllerMetaHolder.controllers.has(controller)) {
-            meta = {
-                actions: []
-            };
-            ControllerMetaHolder.controllers.set(controller, meta);
-        } else {
-            meta = ControllerMetaHolder.controllers.get(controller) as IControllerMeta;
+    public static getControllerType(typeName: string): Type<any> | null {
+        const lookForController = typeName.toLowerCase();
+        for (const pair of ControllerMeta._controllerNames) {
+            if (pair[1].toLowerCase() === lookForController) {
+                return pair[0];
+            }
         }
-        return meta;
+        
+        return null;
     }
 
-    public static registerAction(controller: IControllerInstance, url: string, action: registerControllerByUrl): void {
-        const meta = ControllerMetaHolder.getOrCreateMeta(controller);
-        meta.actions.push({
-            action: action,
-            url: url
-        });
+    public static getControllerName(controller: IControllerInstance): string {
+        return ControllerMeta._controllerNames.get(controller)!;
     }
 
-    public static getActions(controller: IControllerInstance): IControllerAction[] {
-        return ControllerMetaHolder.getOrCreateMeta(controller.prototype).actions;
+    public static getControllers(): IControllerInstance[] {
+        return Array.from(this._controllerNames.keys() as any);
     }
 
-    public static log(controller: string, requestType: string, methodName: string, url: string): void {
-        ControllerMetaHolder._logs.push(`\x1b[32m${controller}\x1b[0m -> [${capitalizeFirstLetter(requestType)}] \x1b[32m${methodName}\x1b[0m -> \x1b[33m${url}\x1b[0m`);
-    }
-    public static printLogs(): void {
-        for (const logData of ControllerMetaHolder._logs) {
-            console.log(logData);
+    public static injectController(controller: IControllerInstance, controllerUrlName: string) {
+        ControllerMeta._controllerNames.set(controller, controllerUrlName);
+        const requiredParams = Reflect.getMetadata('design:paramtypes', controller) || [];
+        if (requiredParams.length > 0) {
+            this._requiredInjections.set(controller, requiredParams);
         }
-    }
-    public static clearLogs(): void {
-        ControllerMetaHolder._logs = [];
     }
 }

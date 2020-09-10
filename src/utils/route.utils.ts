@@ -20,3 +20,36 @@ export const appendControllerToUrl = (controllerPath: string, input: string) => 
         return `/${input}`;
     }
 };
+
+export const splitUrlsToRouteInfo = (url: string) => {
+    if (url.startsWith('/')) {
+        url = url.substring(1, url.length);
+    }
+    if (url === '/')
+        return ['index', '/'];
+
+    const splitted = url.split('/');
+
+    let controllerName: string | null = null;
+    let actionName: string | null = null;
+
+    for (const urlPart of splitted) {
+        if (urlPart.length) {
+            if (!controllerName) {
+                controllerName = urlPart;
+            } else {
+                actionName = urlPart;
+                break;
+            }
+        }
+    }
+
+    if (splitted.length === 1) {
+        if (actionName?.toLowerCase() === 'index') {
+            actionName = '/';
+        }
+        return ['index', controllerName || '/'];
+    }
+
+    return [controllerName, actionName];
+}
