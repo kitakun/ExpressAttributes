@@ -6,8 +6,6 @@ NodeTS on decorators like .NET MVC
 
 `@Get` mark method as get request handler (same for `@Post @Put @Delete`)
 
-`@ExpressServer` mark class as `Application Entry Point`, create Express server and include all `@Controllers` with `@Get @Post etc`.
-
 `@ExpressServer` create express.js server and configure all routes and DI inside it.
 
 `@Injectable()` mark service for Dependency Injection, without this decorator it's will not be Injectable.
